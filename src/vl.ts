@@ -5,7 +5,7 @@
  * @param other - 기타 속성
  * @returns 생성된 객체
  * ******************************************************************************************************************/
-export function vl<V, L, Other extends { [key: string]: unknown }>(
+export function vl<const V, L, Other extends { [key: string]: unknown }>(
   value: V,
   label: L,
   other?: Other
