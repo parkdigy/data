@@ -37,23 +37,15 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     var e = new Error(message);
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };/********************************************************************************************************************
- * {label, value, ...other} 객체 생성하여 반환하는 함수
- * @param label - label
- * @param value - value
- * @param other - 기타 속성
- * @returns 생성된 객체
+ * 구현
  * ******************************************************************************************************************/
 function lv(label, value, other) {
-    return __assign({ label: label, value: value }, other);
+    return __assign(__assign({}, other), { label: label, value: value });
 }/********************************************************************************************************************
- * {value, label, ...other} 객체 생성하여 반환하는 함수
- * @param value - value
- * @param label - label
- * @param other - 기타 속성
- * @returns 생성된 객체
+ * 구현
  * ******************************************************************************************************************/
 function vl(value, label, other) {
-    return __assign({ value: value, label: label }, other);
+    return __assign(__assign({}, other), { value: value, label: label });
 }var index = {
     copy: copy,
     lv: lv,
