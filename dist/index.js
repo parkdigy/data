@@ -84,14 +84,14 @@ function _makeConst(name, items) {
     return Object.assign(Object.assign({}, aliasValueMap), { getLabel(value) {
             return valueLabelMap[value];
         },
-        getList(copy = false) {
-            return copy ? [...list] : list;
+        getList() {
+            return [...list];
         },
         getNvList() {
             return nvList.map((item) => (Object.assign({}, item)));
         },
         getLvList(extraPreItems) {
-            return [...(extraPreItems || []), ...lvList];
+            return [...(extraPreItems || []), ...lvList.map((item) => (Object.assign({}, item)))];
         } });
 }
 function makeConst(nameOrItems, itemsOrUndefined) {

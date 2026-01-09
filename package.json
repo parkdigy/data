@@ -2,7 +2,7 @@
   "name": "@pdg/data",
   "title": "Typescript Data Module",
   "description": "Typescript Data Module",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",

@@ -78,7 +78,7 @@ function _makeConst<
   LabelValueMap = MakeLabelValueMap<Items>,
   ValueType = Items[number][0],
   GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
-  GetList = (copy?: boolean) => ValueList,
+  GetList = () => ValueList,
   GetNvList = () => NameValueList,
   GetLvList = <
     LvValue extends string | number,
@@ -132,8 +132,8 @@ function _makeConst<
       return valueLabelMap[value];
     },
 
-    getList(copy = false) {
-      return copy ? [...list] : list;
+    getList() {
+      return [...list];
     },
 
     getNvList() {
@@ -141,7 +141,7 @@ function _makeConst<
     },
 
     getLvList(extraPreItems?: any[]) {
-      return [...(extraPreItems || []), ...lvList];
+      return [...(extraPreItems || []), ...lvList.map((item) => ({ ...item }))];
     },
   } as Result;
 }
@@ -164,7 +164,7 @@ function makeConst<
   LabelValueMap = MakeLabelValueMap<Items>,
   ValueType = Items[number][0],
   GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
-  GetList = (copy?: boolean) => ValueList,
+  GetList = () => ValueList,
   GetLvList = <
     LvValue extends string | number,
     LvLabel extends string,
@@ -196,7 +196,7 @@ function makeConst<
   LabelValueMap = MakeLabelValueMap<Items>,
   ValueType = Items[number][0],
   GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
-  GetList = (copy?: boolean) => ValueList,
+  GetList = () => ValueList,
   GetNvList = () => NameValueList,
   GetLvList = <
     LvValue extends string | number,
