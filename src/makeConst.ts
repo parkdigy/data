@@ -2,7 +2,7 @@
  * Types
  * ******************************************************************************************************************/
 
-type ValueOf<T> = T[keyof T];
+type Writable<T> = { -readonly [P in keyof T]: T[P] };
 type IsArray<T> = T extends unknown[] ? true : false;
 
 /********************************************************************************************************************
@@ -13,12 +13,6 @@ function camelCase<T extends string>(str: T): CamelCase<T> {
   const result = str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase()) as CamelCase<T>;
   return (result.charAt(0).toUpperCase() + result.slice(1)) as CamelCase<T>;
 }
-
-/********************************************************************************************************************
- * MakeConst
- * ******************************************************************************************************************/
-
-type MakeConst<T> = ValueOf<{ [K in keyof T]: T[K] extends (...args: any[]) => any ? never : T[K] }>;
 
 /********************************************************************************************************************
  * Types
@@ -44,26 +38,16 @@ type MakeValueLabelMap<Items extends TItems> = {
   [K in Items[number] as K[0]]: K[1];
 };
 
-/** MakeNameList */
-type MakeNameValueList<Name extends string, Items extends TItems> = Array<
-  ValueOf<{
-    [K in Items[number] as K[0]]: { [V in Name]: K[0] } & { label: K[1] };
-  }>
->;
-
 /** MakeLvList */
-type MakeLabelValueMap<Items extends TItems> = Items extends readonly (infer Item)[]
-  ? Item extends readonly [infer V, infer N, any?]
-    ? { value: V; label: N }
-    : never
-  : never;
+type MakeLvList<Items extends TItems> = {
+  [K in keyof Items]: Items[K] extends readonly [infer V, infer L, ...any[]] ? { value: V; label: L } : never;
+};
 
 /********************************************************************************************************************
  * makeConst
  * ******************************************************************************************************************/
 
-function _makeConst<
-  Name extends string,
+function makeConst<
   StringValue extends string,
   NumberValue extends number,
   Label extends string,
@@ -74,35 +58,35 @@ function _makeConst<
   AliasValueMap = MakeAliasValueMap<Items>,
   ValueLabelMap = MakeValueLabelMap<Items>,
   ValueList = Items[number][0][],
-  NameValueList = MakeNameValueList<Name, Items>,
-  LabelValueMap = MakeLabelValueMap<Items>,
+  ValueLabelList = MakeLvList<Items>,
   ValueType = Items[number][0],
   GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
   GetList = () => ValueList,
-  GetNvList = () => NameValueList,
   GetLvList = <
     LvValue extends string | number,
     LvLabel extends string,
     LvItems extends readonly { value: LvValue; label: LvLabel }[],
   >(
     items?: LvItems
-  ) => [...ReadonlyArray<LabelValueMap>, ...(IsArray<LvItems> extends true ? LvItems : [])],
+  ) => Writable<
+    [
+      ...(ValueLabelList extends readonly any[] ? ValueLabelList : []),
+      ...(IsArray<LvItems> extends true ? LvItems : []),
+    ]
+  >,
   Result = AliasValueMap & {
     Type: ValueType;
     getLabel: GetLabel;
     getList: GetList;
-    getNvList: GetNvList;
     getLvList: GetLvList;
   },
->(name: Name, items: Items): Result {
+>(items: Items): Result {
   const aliasValueMap = items.reduce(
-    (acc, item) => {
-      if (item.length === 3) {
-        const [value, , alias] = item;
+    (acc, [value, , alias]) => {
+      if (alias !== undefined) {
         acc[alias] = value;
         return acc;
-      } else {
-        const [value] = item;
+      } else if (typeof value === 'string') {
         const alias = camelCase(value);
         acc[alias] = value;
       }
@@ -119,119 +103,23 @@ function _makeConst<
     {} as Record<any, string>
   );
 
-  const list = items.map((item) => item[0]);
-
-  const nvList = items.map((item) => ({ [name]: item[0], name: item[1] }));
-
-  const lvList = items.map((item) => ({ value: item[0], label: item[1] }));
-
   return {
     ...aliasValueMap,
+
+    Type: undefined as unknown as ValueType,
 
     getLabel(value: any) {
       return valueLabelMap[value];
     },
 
     getList() {
-      return [...list];
-    },
-
-    getNvList() {
-      return nvList.map((item) => ({ ...item }));
+      return items.map((item) => item[0]);
     },
 
     getLvList(extraPreItems?: any[]) {
-      return [...(extraPreItems || []), ...lvList.map((item) => ({ ...item }))];
+      return [...(extraPreItems || []), ...items.map((item) => ({ value: item[0], label: item[1] }))];
     },
   } as Result;
-}
-
-/********************************************************************************************************************
- * getLvList
- * ******************************************************************************************************************/
-
-function makeConst<
-  StringValue extends string,
-  NumberValue extends number,
-  Label extends string,
-  Alias extends string,
-  const Items extends
-    | readonly (readonly [StringValue, Label])[]
-    | readonly (readonly [StringValue | NumberValue, Label, Alias])[],
-  AliasValueMap = MakeAliasValueMap<Items>,
-  ValueLabelMap = MakeValueLabelMap<Items>,
-  ValueList = Items[number][0][],
-  LabelValueMap = MakeLabelValueMap<Items>,
-  ValueType = Items[number][0],
-  GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
-  GetList = () => ValueList,
-  GetLvList = <
-    LvValue extends string | number,
-    LvLabel extends string,
-    LvItems extends readonly { value: LvValue; label: LvLabel }[],
-  >(
-    items?: LvItems
-  ) => [...ReadonlyArray<LabelValueMap>, ...(IsArray<LvItems> extends true ? LvItems : [])],
-  Result = AliasValueMap & {
-    Type: ValueType;
-    getLabel: GetLabel;
-    getList: GetList;
-    getLvList: GetLvList;
-  },
->(items: Items): Result;
-
-function makeConst<
-  Name extends string,
-  StringValue extends string,
-  NumberValue extends number,
-  Label extends string,
-  Alias extends string,
-  const Items extends
-    | readonly (readonly [StringValue, Label])[]
-    | readonly (readonly [StringValue | NumberValue, Label, Alias])[],
-  AliasValueMap = MakeAliasValueMap<Items>,
-  ValueLabelMap = MakeValueLabelMap<Items>,
-  ValueList = Items[number][0][],
-  NameValueList = MakeNameValueList<Name, Items>,
-  LabelValueMap = MakeLabelValueMap<Items>,
-  ValueType = Items[number][0],
-  GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],
-  GetList = () => ValueList,
-  GetNvList = () => NameValueList,
-  GetLvList = <
-    LvValue extends string | number,
-    LvLabel extends string,
-    LvItems extends readonly { value: LvValue; label: LvLabel }[],
-  >(
-    items?: LvItems
-  ) => [...ReadonlyArray<LabelValueMap>, ...(IsArray<LvItems> extends true ? LvItems : [])],
-  Result = AliasValueMap & {
-    Type: ValueType;
-    getLabel: GetLabel;
-    getList: GetList;
-    getNvList: GetNvList;
-    getLvList: GetLvList;
-  },
->(name: Name, items: Items): Result;
-
-function makeConst(nameOrItems: any, itemsOrUndefined?: any) {
-  if (itemsOrUndefined === undefined) {
-    const constObj = _makeConst('Unknown', nameOrItems);
-    type ConstType = MakeConst<typeof constObj>;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { getNvList, ...others } = constObj;
-    return {
-      ...others,
-      Type: null as unknown as ConstType,
-    };
-  } else {
-    const constObj = _makeConst(nameOrItems, itemsOrUndefined);
-    type ConstType = MakeConst<typeof constObj>;
-    return {
-      ...constObj,
-      Type: null as unknown as ConstType,
-    };
-  }
 }
 
 export { makeConst };
