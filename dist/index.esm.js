@@ -52,6 +52,9 @@ function makeConst(items) {
         },
         getLvList(extraPreItems) {
             return [...(extraPreItems || []), ...items.map((item) => ({ value: item[0], label: item[1] }))];
+        },
+        getKeyList() {
+            return Object.keys(aliasValueMap);
         } });
 }var index = {
     copy,

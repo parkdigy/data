@@ -17,6 +17,7 @@ describe('copy', () => {
         { value: 'ON', label: '활성' },
         { value: 'OFF', label: '비활성' },
       ]);
+      expect(Status.getKeyList()).toEqual(['On', 'Off']);
     }
 
     {
@@ -38,6 +39,7 @@ describe('copy', () => {
         { value: 2, label: '이번' },
         { value: 3, label: '삼번' },
       ]);
+      expect(Id.getKeyList()).toEqual(['First', 'Second', 'Third']);
     }
   });
 });

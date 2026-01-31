@@ -28,12 +28,12 @@ type TItem = readonly [string, any];
 type TItemWithAlias = readonly [string | number, any, string];
 type TItems = readonly TItem[] | readonly TItemWithAlias[];
 
-/** MakeAliasMap */
+/** MakeAliasValueMap */
 type MakeAliasValueMap<Items extends TItems> = {
   [K in Items[number] as K extends TItem ? CamelCase<K[0]> : K extends TItemWithAlias ? K[2] : never]: K[0];
 };
 
-/** MakeValueNameMap */
+/** MakeValueLabelMap */
 type MakeValueLabelMap<Items extends TItems> = {
   [K in Items[number] as K[0]]: K[1];
 };
@@ -74,11 +74,19 @@ function makeConst<
       ...(IsArray<LvItems> extends true ? LvItems : []),
     ]
   >,
+  GetKeyList = () => {
+    [K in keyof Items]: Items[K] extends TItem
+      ? CamelCase<Items[K][0]>
+      : Items[K] extends TItemWithAlias
+        ? Items[K][2]
+        : never;
+  },
   Result = AliasValueMap & {
     Type: ValueType;
     getLabel: GetLabel;
     getList: GetList;
     getLvList: GetLvList;
+    getKeyList: GetKeyList;
   },
 >(items: Items): Result {
   const aliasValueMap = items.reduce(
@@ -118,6 +126,10 @@ function makeConst<
 
     getLvList(extraPreItems?: any[]) {
       return [...(extraPreItems || []), ...items.map((item) => ({ value: item[0], label: item[1] }))];
+    },
+
+    getKeyList() {
+      return Object.keys(aliasValueMap);
     },
   } as Result;
 }

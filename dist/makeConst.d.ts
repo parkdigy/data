@@ -12,11 +12,11 @@ type CamelCase<S extends PropertyKey> = S extends string ? S extends `${infer T}
 type TItem = readonly [string, any];
 type TItemWithAlias = readonly [string | number, any, string];
 type TItems = readonly TItem[] | readonly TItemWithAlias[];
-/** MakeAliasMap */
+/** MakeAliasValueMap */
 type MakeAliasValueMap<Items extends TItems> = {
     [K in Items[number] as K extends TItem ? CamelCase<K[0]> : K extends TItemWithAlias ? K[2] : never]: K[0];
 };
-/** MakeValueNameMap */
+/** MakeValueLabelMap */
 type MakeValueLabelMap<Items extends TItems> = {
     [K in Items[number] as K[0]]: K[1];
 };
@@ -36,11 +36,14 @@ declare function makeConst<StringValue extends string, NumberValue extends numbe
 }[]>(items?: LvItems) => Writable<[
     ...(ValueLabelList extends readonly any[] ? ValueLabelList : []),
     ...(IsArray<LvItems> extends true ? LvItems : [])
-]>, Result = AliasValueMap & {
+]>, GetKeyList = () => {
+    [K in keyof Items]: Items[K] extends TItem ? CamelCase<Items[K][0]> : Items[K] extends TItemWithAlias ? Items[K][2] : never;
+}, Result = AliasValueMap & {
     Type: ValueType;
     getLabel: GetLabel;
     getList: GetList;
     getLvList: GetLvList;
+    getKeyList: GetKeyList;
 }>(items: Items): Result;
 export { makeConst };
 export default makeConst;
