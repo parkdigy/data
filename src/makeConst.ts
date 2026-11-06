@@ -28,6 +28,11 @@ type TItem = readonly [string, any];
 type TItemWithAlias = readonly [string | number, any, string];
 type TItems = readonly TItem[] | readonly TItemWithAlias[];
 
+/** MakeValueList */
+type MakeValueList<Items extends TItems> = {
+  -readonly [K in keyof Items]: Items[K] extends readonly [infer Value, ...unknown[]] ? Value : never;
+};
+
 /** MakeAliasValueMap */
 type MakeAliasValueMap<Items extends TItems> = {
   [K in Items[number] as K extends TItem ? CamelCase<K[0]> : K extends TItemWithAlias ? K[2] : never]: K[0];
@@ -57,7 +62,7 @@ function makeConst<
     | readonly (readonly [StringValue | NumberValue, Label, Alias])[],
   AliasValueMap = MakeAliasValueMap<Items>,
   ValueLabelMap = MakeValueLabelMap<Items>,
-  ValueList = Items[number][0][],
+  ValueList = MakeValueList<Items>,
   ValueLabelList = MakeLvList<Items>,
   ValueType = Items[number][0],
   GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T],

@@ -1,5 +1,23 @@
 import { makeConst } from '../src';
 
+function acceptsNonEmptyStrings(_values: readonly [string, ...string[]]) {}
+
+it('preserves the value list tuple type', () => {
+  const status = makeConst([['ON', '활성'], ['OFF', '비활성']]);
+  const values: ['ON', 'OFF'] = status.getList();
+  acceptsNonEmptyStrings(values);
+
+  const empty = makeConst([]);
+  // @ts-expect-error 빈 목록은 비어 있지 않은 튜플에 할당할 수 없다.
+  acceptsNonEmptyStrings(empty.getList());
+
+  const dynamicItems: [string, string][] = [['ON', '활성']];
+  const dynamic = makeConst(dynamicItems);
+  // @ts-expect-error 일반 배열은 비어 있지 않음을 보장하지 않는다.
+  acceptsNonEmptyStrings(dynamic.getList());
+  expect(values).toEqual(['ON', 'OFF']);
+});
+
 describe('copy', () => {
   it('makeConst', () => {
     {

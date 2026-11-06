@@ -12,6 +12,10 @@ type CamelCase<S extends PropertyKey> = S extends string ? S extends `${infer T}
 type TItem = readonly [string, any];
 type TItemWithAlias = readonly [string | number, any, string];
 type TItems = readonly TItem[] | readonly TItemWithAlias[];
+/** MakeValueList */
+type MakeValueList<Items extends TItems> = {
+    -readonly [K in keyof Items]: Items[K] extends readonly [infer Value, ...unknown[]] ? Value : never;
+};
 /** MakeAliasValueMap */
 type MakeAliasValueMap<Items extends TItems> = {
     [K in Items[number] as K extends TItem ? CamelCase<K[0]> : K extends TItemWithAlias ? K[2] : never]: K[0];
@@ -30,7 +34,7 @@ type MakeLvList<Items extends TItems> = {
 /********************************************************************************************************************
  * makeConst
  * ******************************************************************************************************************/
-declare function makeConst<StringValue extends string, NumberValue extends number, Label extends string, Alias extends string, const Items extends readonly (readonly [StringValue, Label])[] | readonly (readonly [StringValue | NumberValue, Label, Alias])[], AliasValueMap = MakeAliasValueMap<Items>, ValueLabelMap = MakeValueLabelMap<Items>, ValueList = Items[number][0][], ValueLabelList = MakeLvList<Items>, ValueType = Items[number][0], GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T], GetList = () => ValueList, GetLvList = <LvValue extends string | number, LvLabel extends string, LvItems extends readonly {
+declare function makeConst<StringValue extends string, NumberValue extends number, Label extends string, Alias extends string, const Items extends readonly (readonly [StringValue, Label])[] | readonly (readonly [StringValue | NumberValue, Label, Alias])[], AliasValueMap = MakeAliasValueMap<Items>, ValueLabelMap = MakeValueLabelMap<Items>, ValueList = MakeValueList<Items>, ValueLabelList = MakeLvList<Items>, ValueType = Items[number][0], GetLabel = <T extends keyof ValueLabelMap>(value: T) => ValueLabelMap[T], GetList = () => ValueList, GetLvList = <LvValue extends string | number, LvLabel extends string, LvItems extends readonly {
     value: LvValue;
     label: LvLabel;
 }[]>(items?: LvItems) => Writable<[
